@@ -1,101 +1,80 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import TodoInput from "./components/TodoInput";
+import TodoList from "./components/TodoList";
+import Icon from './components/Icon';
+import { getTodos, addTodo, updateTodoStatus } from "./lib/api"; // API 호출 함수 임포트
+import styles from './styles/Page.module.css';
+
+export default function TodoPage() {
+  const [todos, setTodos] = useState<{ id: number; name: string; completed: boolean }[]>([]);
+  const [loading, setLoading] = useState(false); // 로딩 상태
+  const [loadingTodos, setLoadingTodos] = useState(true); // 할 일 목록 로딩 상태
+
+    // 새로운 할 일 추가 시 상태 업데이트
+    const handleTodoAdded = async (task: string) => {
+      setLoading(true); // 로딩 시작
+      try {
+        const newTodo = await addTodo(task); // API 호출하여 할 일 추가
+        setTodos((prevTodos) => [...prevTodos, newTodo]); // 상태 업데이트
+      } catch (error) {
+        console.error("할 일 추가 중 오류 발생:", error);
+      } finally {
+        setLoading(false); // 로딩 끝
+      }
+    };
+    
+     // 할 일 목록을 가져오는 함수
+    const fetchTodos = async () => {
+      setLoadingTodos(true); // 로딩 시작
+      try {
+        const fetchedTodos = await getTodos(); // API 호출
+        setTodos(fetchedTodos); // 상태 업데이트
+      } catch (error) {
+        console.error("할 일 목록 가져오기 중 오류 발생:", error);
+      } finally {
+        setLoadingTodos(false); // 로딩 끝
+      }
+    };
+    // 컴포넌트가 마운트될 때 할 일 목록을 가져옵니다.
+    useEffect(() => {
+      fetchTodos(); // 할 일 목록 가져오기
+    }, []); // 페이지가 처음 로드될 때만 실행
+
+    // 할 일 상태 업데이트 함수
+    const toggleComplete = async (id: number) => {
+      const todoToUpdate = todos.find((todo) => todo.id === id);
+      if (!todoToUpdate) return;
+    
+      const updatedTodo = { ...todoToUpdate, completed: !todoToUpdate.completed };
+    
+      setTodos((prevTodos) =>
+        prevTodos.map((todo) =>
+          todo.id === id ? { ...todo, completed: updatedTodo.completed } : todo
+        )
+      );
+
+      try {
+        await updateTodoStatus(id, updatedTodo.completed); // 서버에 완료 상태 업데이트
+      } catch (error) {
+        console.error("할 일 상태 업데이트 중 오류 발생:", error);
+      }
+    };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className={styles.main}>
+        <Icon /> {/* 아이콘 표시 */}
+        <div className={styles.page}>
+        <TodoInput onTodoAdded={handleTodoAdded} hasTodos={todos.length > 0} loading={loading}/>
+        <div>
+          {loadingTodos ? (  // 로딩 중이면 로딩 메시지 표시
+            <p>할 일 목록을 가져오는 중...</p>
+          ) : (
+            <TodoList todos={todos} toggleComplete={toggleComplete} />
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
-}
+} 

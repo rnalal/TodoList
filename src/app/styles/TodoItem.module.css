@@ -1,0 +1,36 @@
+.todoItem {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    padding: 12px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    border-radius: 30px;
+    border: 1px solid black;
+  }
+
+  .checkbox {
+    margin-right: 16px;
+    cursor: pointer;
+  }
+  
+  .label {
+    flex: 1;
+    font-size: 40px !important;
+    cursor: pointer;
+  }
+  
+  .completedTask {
+    text-decoration: line-through;
+    color: gray;
+  }
+
+  .completed {
+    background-color: #EDE9FE; /* 연보라색 */
+  }
+
+  .taskLink {
+    text-decoration: none; /* 기본 링크 스타일 제거 */
+    color: inherit; /* 부모 요소의 글자 색상을 따라감 */
+    cursor: pointer;
+  }
