@@ -13,7 +13,7 @@ interface TodoItemProps {
 const TodoItem: React.FC<TodoItemProps> = ({ id, name, completed, toggleComplete }) => {
   return (
     <div className={`${styles.todoItem} ${completed ? styles.completed : ""}`}>
-      {/*  체크박스 클릭 시 완료 상태 변경 */}
+      {/* 체크박스 클릭 시 완료 상태 변경*/}
       <div onClick={toggleComplete} className={styles.checkbox}>
         <img
           src={completed ? "/images/check.png" : "/images/nocheck.png"}
